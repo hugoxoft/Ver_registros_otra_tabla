@@ -1,0 +1,30 @@
+Imports System.Data.SqlClient
+Imports System.Data
+Imports System.Web.UI
+Imports System.IO
+Partial Class Default1
+    Inherits System.Web.UI.Page
+
+    Protected Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+
+        'FORMA 1
+        'Dim cQuery As String = "SELECT M.int_id as [ID], M.str_nombre as [Nombre], M.str_departamento as [Departamento], " & _
+        '"M.str_status as [Status] FROM Table_maestro M LEFT JOIN Table_detalle D ON M.int_id = D.int_id WHERE D.int_id IS NULL ORDER BY M.int_id"
+
+        'FORMA 2
+        Dim cQuery As String = "SELECT M.int_id as [ID], M.str_nombre as [Nombre], M.str_departamento as [Departamento], " & _
+        "M.str_status as [Status] FROM Table_maestro M WHERE NOT EXISTS (SELECT int_id FROM Table_detalle D WHERE M.int_id = D.int_id) ORDER BY M.int_id"
+
+        Try
+            Dim Cnn As New SqlConnection(Session("cConectaSQL"))
+            Dim Ds As New DataSet
+            Dim Da As New SqlClient.SqlDataAdapter(cQuery, Cnn)
+            Da.SelectCommand.CommandTimeout = 0
+            Da.Fill(Ds, "Table_maestro Table_detalle")
+            Me.GridView1.DataSource = Ds.Tables("Table_maestro Table_detalle")
+            Me.GridView1.DataBind()
+        Catch err As Exception
+            Me.Label_error.Text = err.Message
+        End Try
+    End Sub
+End Class
